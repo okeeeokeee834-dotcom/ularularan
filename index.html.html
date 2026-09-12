@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Couple Snake & Ladder — 100 Steps, Endless Stories</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFF7F0;
+    --cream-deep:#FBEEE0;
+    --pink:#F7C9D8;
+    --pink-deep:#E58AA0;
+    --rose:#D46A87;
+    --rose-dark:#B44F6B;
+    --lavender:#E6DCF8;
+    --lavender-deep:#B79FE0;
+    --blue:#D3ECF8;
+    --blue-deep:#8FC6E0;
+    --gold:#F6DFA6;
+    --gold-deep:#DDA83F;
+    --ink:#4A3B42;
+    --ink-soft:#8A7680;
+    --white:#FFFFFF;
+    --radius:16px;
+    --shadow:0 8px 24px rgba(180,79,107,0.14);
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 8% 12%, rgba(247,201,216,0.55), transparent 40%),
+      radial-gradient(circle at 92% 18%, rgba(211,236,248,0.55), transparent 42%),
+      radial-gradient(circle at 50% 95%, rgba(230,220,248,0.5), transparent 45%),
+      var(--cream);
+    font-family:'Quicksand',sans-serif;
+    color:var(--ink);
+    padding:22px 16px 60px;
+  }
+  .sr-only{
+    position:absolute; width:1px; height:1px; overflow:hidden;
+    clip:rect(0,0,0,0); white-space:nowrap;
+  }
+  a, button{font-family:inherit;}
+  button{cursor:pointer;}
+  button:focus-visible, input:focus-visible, a:focus-visible{
+    outline:3px solid var(--rose-dark);
+    outline-offset:2px;
+  }
+
+  /* ---------- HEADER ---------- */
+  .page{
+    max-width:1180px;
+    margin:0 auto;
+    position:relative;
+  }
+  .header{
+    text-align:center;
+    position:relative;
+    padding:18px 10px 8px;
+  }
+  .header .doodle{
+    position:absolute;
+    font-size:26px;
+    opacity:0.9;
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,0.06));
+    user-select:none;
+  }
+  .d1{top:2px; left:2%; transform:rotate(-14deg);}
+  .d2{top:10px; right:3%; transform:rotate(12deg);}
+  .d3{bottom:-4px; left:14%; transform:rotate(8deg); font-size:20px;}
+  .d4{bottom:0; right:16%; transform:rotate(-10deg); font-size:20px;}
+
+  .eyebrow-tag{
+    display:inline-block;
+    background:var(--white);
+    color:var(--rose-dark);
+    font-weight:600;
+    font-size:13px;
+    padding:5px 16px;
+    border-radius:999px;
+    border:1.5px dashed var(--pink-deep);
+    margin-bottom:10px;
+  }
+  h1.title{
+    font-family:'Fredoka',sans-serif;
+    font-weight:700;
+    font-size:clamp(28px,5vw,46px);
+    margin:0;
+    color:var(--rose-dark);
+    letter-spacing:0.5px;
+  }
+  .subtitle{
+    font-size:15px;
+    color:var(--ink-soft);
+    margin:8px 0 0;
+    font-weight:600;
+  }
+
+  /* ---------- SETUP ---------- */
+  .setup-card{
+    max-width:480px;
+    margin:26px auto;
+    background:var(--white);
+    border-radius:22px;
+    padding:28px 26px 24px;
+    box-shadow:var(--shadow);
+    border:2px solid var(--pink);
+    text-align:center;
+  }
+  .setup-card h2{
+    font-family:'Fredoka',sans-serif;
+    color:var(--rose-dark);
+    margin:0 0 4px;
+    font-size:22px;
+  }
+  .setup-card p{
+    margin:0 0 20px;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+  .field{
+    text-align:left;
+    margin-bottom:14px;
+  }
+  .field label{
+    display:block;
+    font-weight:700;
+    font-size:13px;
+    margin-bottom:6px;
+    color:var(--ink);
+  }
+  .field input{
+    width:100%;
+    padding:11px 14px;
+    border-radius:12px;
+    border:2px solid var(--lavender-deep);
+    font-size:15px;
+    font-family:inherit;
+    background:var(--cream);
+    color:var(--ink);
+  }
+  .token-preview{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top:6px;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .btn-primary{
+    width:100%;
+    margin-top:8px;
+    padding:14px 18px;
+    border:none;
+    border-radius:14px;
+    background:linear-gradient(135deg,var(--rose),var(--rose-dark));
+    color:#fff;
+    font-weight:700;
+    font-size:16px;
+    font-family:'Fredoka',sans-serif;
+    box-shadow:0 6px 16px rgba(180,79,107,0.35);
+    transition:transform .15s ease;
+  }
+  .btn-primary:hover{transform:translateY(-2px);}
+  .btn-primary:active{transform:translateY(0);}
+
+  /* ---------- GAME LAYOUT ---------- */
+  #gameScreen{display:none;}
+  .game-wrap{
+    display:grid;
+    grid-template-columns: 1fr 300px;
+    gap:22px;
+    align-items:start;
+    margin-top:10px;
+  }
+  @media (max-width: 880px){
+    .game-wrap{grid-template-columns:1fr;}
+  }
+
+  .board-frame{
+    background:var(--white);
+    border-radius:24px;
+    padding:16px;
+    box-shadow:var(--shadow);
+    border:2px solid var(--pink);
+    position:relative;
+  }
+  .board-outer{
+    position:relative;
+    width:100%;
+    aspect-ratio:1/1;
+    border-radius:16px;
+    overflow:hidden;
+    background:
+      repeating-linear-gradient(45deg, rgba(247,201,216,0.18) 0 14px, rgba(255,255,255,0) 14px 28px),
+      var(--cream-deep);
+    border:3px solid var(--pink-deep);
+  }
+  #board{
+    position:relative;
+    width:100%;
+    height:100%;
+    display:grid;
+    grid-template-columns:repeat(10,1fr);
+    grid-template-rows:repeat(10,1fr);
+  }
+  .cell{
+    position:relative;
+    border:1px solid rgba(180,79,107,0.10);
+    display:flex;
+    align-items:flex-start;
+    justify-content:flex-start;
+    padding:2px 4px;
+    font-size:clamp(8px,1.3vw,12px);
+    font-weight:700;
+    color:var(--ink-soft);
+    background:transparent;
+  }
+  .cell .num{position:relative; z-index:2;}
+  .cell.finish{
+    background:linear-gradient(135deg,var(--gold),var(--pink));
+  }
+  .cell.start{
+    background:linear-gradient(135deg,var(--blue),var(--lavender));
+  }
+  .cell.cat-kenal{background:rgba(247,201,216,0.65);}
+  .cell.cat-deep{background:rgba(183,159,224,0.35);}
+  .cell.cat-memory{background:rgba(143,198,224,0.35);}
+  .cell.cat-challenge{background:rgba(221,168,63,0.30);}
+  .cell .tag-icon{
+    position:absolute;
+    bottom:2px;
+    right:3px;
+    font-size:clamp(9px,1.6vw,15px);
+    z-index:2;
+  }
+  svg.connectors{
+    position:absolute;
+    top:0;left:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:3;
+  }
+  .token{
+    position:absolute;
+    width:6.2%;
+    height:6.2%;
+    min-width:14px;
+    min-height:14px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:clamp(9px,1.8vw,16px);
+    box-shadow:0 3px 8px rgba(0,0,0,0.25);
+    border:2px solid #fff;
+    z-index:5;
+    transition: left .5s cubic-bezier(.34,1.56,.64,1), top .5s cubic-bezier(.34,1.56,.64,1);
+  }
+  .token.p1{background:linear-gradient(135deg,var(--pink-deep),var(--rose-dark));}
+  .token.p2{background:linear-gradient(135deg,var(--blue-deep),#4E8FB0);}
+
+  /* ---------- SIDE PANEL ---------- */
+  .panel{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .panel-card{
+    background:var(--white);
+    border-radius:20px;
+    padding:18px;
+    box-shadow:var(--shadow);
+    border:2px solid var(--lavender);
+  }
+  .turn-banner{
+    text-align:center;
+    font-family:'Fredoka',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    background:linear-gradient(135deg,var(--pink),var(--lavender));
+    border-radius:14px;
+    padding:10px 8px;
+    color:var(--rose-dark);
+  }
+  .dice-area{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+  }
+  .dice-face{
+    font-size:54px;
+    line-height:1;
+    background:var(--cream);
+    border-radius:16px;
+    padding:8px 16px;
+    border:2px dashed var(--gold-deep);
+  }
+  .btn-roll{
+    padding:12px 22px;
+    border:none;
+    border-radius:14px;
+    background:linear-gradient(135deg,var(--gold-deep),var(--rose));
+    color:#fff;
+    font-weight:700;
+    font-family:'Fredoka',sans-serif;
+    font-size:15px;
+    box-shadow:0 6px 14px rgba(221,168,63,0.35);
+  }
+  .btn-roll:disabled{opacity:0.5; cursor:not-allowed;}
+  .players-list{display:flex; flex-direction:column; gap:10px;}
+  .player-chip{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 12px;
+    border-radius:14px;
+    background:var(--cream);
+    border:2px solid transparent;
+    font-weight:700;
+    font-size:14px;
+  }
+  .player-chip.active{
+    border-color:var(--rose-dark);
+    background:var(--pink);
+  }
+  .player-dot{
+    width:16px;height:16px;border-radius:50%;
+    border:2px solid #fff; box-shadow:0 2px 5px rgba(0,0,0,0.2);
+    flex-shrink:0;
+  }
+  .player-dot.p1{background:linear-gradient(135deg,var(--pink-deep),var(--rose-dark));}
+  .player-dot.p2{background:linear-gradient(135deg,var(--blue-deep),#4E8FB0);}
+  .player-pos{margin-left:auto; font-size:12px; color:var(--ink-soft); font-weight:600;}
+
+  .legend-title{
+    font-family:'Fredoka',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    margin:0 0 10px;
+    color:var(--rose-dark);
+  }
+  .legend-row{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    font-size:12.5px;
+    margin-bottom:7px;
+    color:var(--ink);
+  }
+  .legend-swatch{
+    width:16px;height:16px;border-radius:6px;flex-shrink:0;
+  }
+  .btn-secondary{
+    width:100%;
+    padding:10px;
+    border-radius:12px;
+    border:2px solid var(--lavender-deep);
+    background:#fff;
+    color:var(--ink);
+    font-weight:700;
+    font-size:13px;
+  }
+
+  /* ---------- FOOTER RIBBON ---------- */
+  .footer-ribbon{
+    text-align:center;
+    margin-top:26px;
+    font-family:'Fredoka',sans-serif;
+  }
+  .footer-ribbon .big{
+    font-weight:700;
+    color:var(--rose-dark);
+    font-size:18px;
+  }
+  .footer-ribbon .small{
+    font-size:13px;
+    color:var(--ink-soft);
+    font-weight:500;
+    margin-top:4px;
+  }
+
+  /* ---------- MODAL ---------- */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(74,59,66,0.45);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:50;
+    padding:20px;
+  }
+  .overlay.show{display:flex;}
+  .modal-card{
+    background:var(--white);
+    max-width:420px;
+    width:100%;
+    border-radius:24px;
+    padding:28px 24px 24px;
+    text-align:center;
+    box-shadow:0 20px 50px rgba(0,0,0,0.25);
+    position:relative;
+    border:3px solid var(--pink-deep);
+  }
+  .modal-card.cat-deep{border-color:var(--lavender-deep);}
+  .modal-card.cat-memory{border-color:var(--blue-deep);}
+  .modal-card.cat-challenge{border-color:var(--gold-deep);}
+  .modal-badge{
+    display:inline-block;
+    font-family:'Fredoka',sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    padding:6px 16px;
+    border-radius:999px;
+    margin-bottom:14px;
+    color:#fff;
+  }
+  .modal-badge.cat-kenal{background:var(--rose-dark);}
+  .modal-badge.cat-deep{background:var(--lavender-deep);}
+  .modal-badge.cat-memory{background:var(--blue-deep);}
+  .modal-badge.cat-challenge{background:var(--gold-deep);}
+  .modal-emoji{font-size:38px; margin-bottom:8px;}
+  .modal-text{
+    font-size:18px;
+    font-weight:600;
+    color:var(--ink);
+    line-height:1.5;
+    margin:0 0 22px;
+  }
+  .modal-note{
+    position:absolute; top:14px; right:16px;
+    font-size:12px; color:var(--ink-soft); font-weight:700;
+  }
+  .toast{
+    position:fixed;
+    bottom:22px; left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ink);
+    color:#fff;
+    padding:12px 22px;
+    border-radius:999px;
+    font-weight:600;
+    font-size:14px;
+    opacity:0;
+    transition:opacity .25s ease, transform .25s ease;
+    z-index:60;
+    pointer-events:none;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  /* ---------- WIN SCREEN ---------- */
+  .win-card{
+    background:linear-gradient(160deg,var(--pink) 0%, var(--lavender) 55%, var(--blue) 100%);
+    max-width:460px; width:100%;
+    border-radius:26px;
+    padding:34px 26px;
+    text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,0.3);
+  }
+  .win-card h2{
+    font-family:'Fredoka',sans-serif;
+    color:var(--rose-dark);
+    font-size:26px;
+    margin:6px 0 10px;
+  }
+  .win-card p{color:var(--ink); font-weight:600; font-size:15px; margin:0 0 20px;}
+  .confetti-wrap{
+    position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:1;
+  }
+  .confetti-piece{
+    position:absolute; top:-10%; font-size:20px;
+    animation:fall linear infinite;
+  }
+  @keyframes fall{
+    to{ transform:translateY(120vh) rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="header">
+    <span class="doodle d1">💌</span>
+    <span class="doodle d2">🎧</span>
+    <span class="doodle d3">☕</span>
+    <span class="doodle d4">📷</span>
+    <div class="eyebrow-tag">✨ Couple Edition ✨</div>
+    <h1 class="title">Couple Snake &amp; Ladder</h1>
+    <p class="subtitle">100 Steps, Endless Stories 💕 Kenal Lebih Dalam, Sayang Lebih Lama</p>
+  </header>
+
+  <!-- SETUP -->
+  <section class="setup-card" id="setupScreen">
+    <h2>Siap Main Berdua? 🎲</h2>
+    <p>Isi nama kalian dulu, terus lempar dadu bergantian sampai ke kotak 100.</p>
+    <div class="field">
+      <label for="p1Name">Nama Kamu 💗</label>
+      <input type="text" id="p1Name" placeholder="cth: Aku" maxlength="16">
+    </div>
+    <div class="field">
+      <label for="p2Name">Nama Pasangan 💙</label>
+      <input type="text" id="p2Name" placeholder="cth: Sayang" maxlength="16">
+    </div>
+    <button class="btn-primary" id="startBtn">Mulai Main 💌</button>
+  </section>
+
+  <!-- GAME -->
+  <section id="gameScreen">
+    <div class="game-wrap">
+      <div class="board-frame">
+        <div class="board-outer">
+          <div id="board"></div>
+          <svg class="connectors" id="connectors" viewBox="0 0 1000 1000" preserveAspectRatio="none"></svg>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-card">
+          <div class="turn-banner" id="turnBanner" aria-live="polite">Giliran main</div>
+        </div>
+
+        <div class="panel-card dice-area">
+          <div class="dice-face" id="diceFace">🎲</div>
+          <button class="btn-roll" id="rollBtn">Kocok Dadu</button>
+        </div>
+
+        <div class="panel-card">
+          <div class="players-list" id="playersList"></div>
+        </div>
+
+        <div class="panel-card">
+          <p class="legend-title">Keterangan Kotak</p>
+          <div class="legend-row"><span class="legend-swatch" style="background:var(--pink);"></span> Kenalan</div>
+          <div class="legend-row"><span class="legend-swatch" style="background:var(--lavender-deep);"></span> Deep Talk</div>
+          <div class="legend-row"><span class="legend-swatch" style="background:var(--blue-deep);"></span> Memory</div>
+          <div class="legend-row"><span class="legend-swatch" style="background:var(--gold-deep);"></span> Challenge</div>
+          <div class="legend-row">🪜 Tangga Cinta — otomatis naik</div>
+          <div class="legend-row">💧 Baper Turun — otomatis turun</div>
+        </div>
+
+        <button class="btn-secondary" id="resetBtn">Main Ulang dari Awal</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer-ribbon">
+    <div class="big">Couple Snake &amp; Ladder</div>
+    <div class="small">100 Steps, Endless Stories &nbsp;•&nbsp; Kenal Lebih Dalam, Sayang Lebih Lama</div>
+  </div>
+</div>
+
+<div id="liveRegion" class="sr-only" aria-live="polite"></div>
+<div class="toast" id="toast"></div>
+
+<!-- QUESTION MODAL -->
+<div class="overlay" id="qOverlay" role="dialog" aria-modal="true" aria-labelledby="qModalText">
+  <div class="modal-card" id="qModalCard">
+    <div class="modal-emoji" id="qModalEmoji">💕</div>
+    <div class="modal-badge" id="qModalBadge">Kenalan</div>
+    <p class="modal-text" id="qModalText"></p>
+    <button class="btn-primary" id="qCloseBtn">Sudah, Lanjut Main ✅</button>
+  </div>
+</div>
+
+<!-- WIN MODAL -->
+<div class="overlay" id="winOverlay">
+  <div class="win-card" style="position:relative;">
+    <div class="confetti-wrap" id="confettiWrap"></div>
+    <div style="position:relative; z-index:2;">
+      <div style="font-size:46px;">🏁💗</div>
+      <h2>Sampai di Kotak 100!</h2>
+      <p id="winText">Selamat, perjalanan 100 langkah kalian selesai. Semoga makin sayang, makin dekat, dan makin banyak cerita ✨</p>
+      <button class="btn-primary" id="playAgainBtn">Main Lagi dari Awal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- DATA ----------
+  var SPECIAL = {
+    5:{cat:'kenal', text:'Apa hal pertama yang membuat kamu tertarik padaku?'},
+    9:{cat:'deep', text:'Kalau kita LDR, apa tantangan terbesar menurutmu?'},
+    12:{cat:'memory', text:'Hal apa yang paling kamu rindukan saat kita tidak bertemu?'},
+    14:{cat:'challenge', text:'Peluk 10 detik, lalu ceritakan bagaimana rasanya 🤗'},
+    18:{cat:'kenal', text:'Apa kebiasaan kecilku yang paling kamu suka?'},
+    21:{cat:'deep', text:'Apa love language kamu sebenarnya?'},
+    24:{cat:'memory', text:'Momen paling bahagia kita berdua, menurutmu, kapan?'},
+    27:{cat:'challenge', text:'Ceritakan satu alasan kamu sayang aku, sekarang juga.'},
+    31:{cat:'kenal', text:'Apa hal kecil yang bisa membuat mood kamu langsung membaik?'},
+    33:{cat:'deep', text:'Apa ketakutan terbesar kamu dalam hubungan ini?'},
+    38:{cat:'memory', text:'Apa satu hal yang paling ingin kamu lakukan bersama aku?'},
+    42:{cat:'challenge', text:'Kirim voice note romantis untuk pasanganmu, sekarang.'},
+    44:{cat:'kenal', text:'Apa sifatku yang paling ingin kamu pertahankan?'},
+    47:{cat:'deep', text:'Menurutmu, cara terbaik menyelesaikan masalah berdua itu bagaimana?'},
+    51:{cat:'deep', text:'Apa impian terbesar yang ingin kita capai bersama?'},
+    55:{cat:'challenge', text:'Ceritakan kenangan favoritmu bersama aku.'},
+    59:{cat:'kenal', text:'Apa sifatku yang menurutmu perlu aku perbaiki?'},
+    62:{cat:'deep', text:'Apa yang membuat kamu yakin dengan hubungan ini?'},
+    66:{cat:'memory', text:'Kenangan kita yang paling ingin kamu ulang, yang mana?'},
+    69:{cat:'challenge', text:'Berikan satu pujian jujur untuk pasanganmu sekarang.'},
+    71:{cat:'kenal', text:'Apa yang membuat kamu merasa benar-benar dicintai?'},
+    76:{cat:'deep', text:'Menurutmu, apa arti hubungan yang sehat?'},
+    79:{cat:'memory', text:'Kalau kita punya satu hari penuh bersama, mau ngapain aja?'},
+    81:{cat:'challenge', text:'Foto bersama sekarang, simpan sebagai kenangan hari ini 📸'},
+    85:{cat:'kenal', text:'Apa hal yang belum pernah kamu ceritakan ke aku?'},
+    87:{cat:'deep', text:'Apa pesan yang paling ingin kamu sampaikan untuk aku?'},
+    91:{cat:'memory', text:'Sebutkan 3 kata yang menggambarkan hubungan kita menurutmu.'},
+    93:{cat:'challenge', text:'Buat rencana date berikutnya bareng, sekarang juga.'},
+    97:{cat:'challenge', text:'Kirim pelukan virtual sebanyak-banyaknya lewat emoji 🤗 ke pasanganmu.'}
+  };
+  var LADDERS = {3:20,7:29,15:34,22:53,41:63,54:72,61:83,75:94};
+  var SNAKES  = {17:4,32:10,48:26,56:36,65:45,78:58,89:67,96:74};
+
+  var CAT_META = {
+    kenal:{label:'Question Time', emoji:'💕'},
+    deep:{label:'Deep Talk', emoji:'🌙'},
+    memory:{label:'Memory', emoji:'📸'},
+    challenge:{label:'Challenge', emoji:'✨'}
+  };
+
+  // ---------- BOARD BUILD ----------
+  var boardEl = document.getElementById('board');
+  var connectorsEl = document.getElementById('connectors');
+  var numToCellIndex = {};
+  var gridNumbers = [];
+
+  function buildGridNumbers(){
+    var rows = [];
+    for(var r=9; r>=0; r--){
+      var base = r*10;
+      var rowNums = [];
+      for(var c=0;c<10;c++){
+        if(r % 2 === 0){ rowNums.push(base + c + 1); }
+        else { rowNums.push(base + 10 - c); }
+      }
+      rows.push(rowNums);
+    }
+    var flat = [];
+    for(var i=0;i<rows.length;i++){ flat = flat.concat(rows[i]); }
+    return flat;
+  }
+
+  function renderBoard(){
+    gridNumbers = buildGridNumbers();
+    boardEl.innerHTML = '';
+    for(var i=0;i<gridNumbers.length;i++){
+      var num = gridNumbers[i];
+      numToCellIndex[num] = i;
+      var cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.num = num;
+      if(num === 1) cell.classList.add('start');
+      if(num === 100) cell.classList.add('finish');
+      if(SPECIAL[num]) cell.classList.add('cat-' + SPECIAL[num].cat);
+
+      var span = document.createElement('span');
+      span.className = 'num';
+      span.textContent = num;
+      cell.appendChild(span);
+
+      if(SPECIAL[num]){
+        var tag = document.createElement('span');
+        tag.className = 'tag-icon';
+        tag.textContent = CAT_META[SPECIAL[num].cat].emoji;
+        cell.appendChild(tag);
+      } else if(LADDERS[num]){
+        var t1 = document.createElement('span');
+        t1.className = 'tag-icon';
+        t1.textContent = '🪜';
+        cell.appendChild(t1);
+      } else if(SNAKES[num]){
+        var t2 = document.createElement('span');
+        t2.className = 'tag-icon';
+        t2.textContent = '💧';
+        cell.appendChild(t2);
+      }
+      boardEl.appendChild(cell);
+    }
+  }
+
+  function getCellCenterPct(num){
+    var idx = numToCellIndex[num];
+    var col = idx % 10;
+    var row = Math.floor(idx / 10);
+    return { x: (col + 0.5) * 100, y: (row + 0.5) * 100 };
+  }
+
+  function drawConnectors(){
+    var svgns = "http://www.w3.org/2000/svg";
+    connectorsEl.innerHTML = '';
+
+    function addCurve(x1,y1,x2,y2,color,dashed,width){
+      var mx = (x1+x2)/2, my = (y1+y2)/2;
+      var dx = x2-x1, dy = y2-y1;
+      var offset = 18;
+      var len = Math.sqrt(dx*dx+dy*dy) || 1;
+      var nx = -dy/len, ny = dx/len;
+      var cx = mx + nx*offset, cy = my + ny*offset;
+      var path = document.createElementNS(svgns,'path');
+      path.setAttribute('d', 'M '+x1+' '+y1+' Q '+cx+' '+cy+' '+x2+' '+y2);
+      path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width', width || 7);
+      path.setAttribute('fill','none');
+      path.setAttribute('stroke-linecap','round');
+      if(dashed) path.setAttribute('stroke-dasharray','4 10');
+      connectorsEl.appendChild(path);
+      return {cx:cx, cy:cy};
+    }
+
+    Object.keys(LADDERS).forEach(function(startStr){
+      var start = parseInt(startStr,10);
+      var end = LADDERS[start];
+      var p1 = getCellCenterPct(start);
+      var p2 = getCellCenterPct(end);
+      addCurve(p1.x,p1.y,p2.x,p2.y,'#DDA83F',false,7);
+      addCurve(p1.x,p1.y,p2.x,p2.y,'#F6DFA6',false,3);
+    });
+
+    Object.keys(SNAKES).forEach(function(startStr){
+      var start = parseInt(startStr,10);
+      var end = SNAKES[start];
+      var p1 = getCellCenterPct(start);
+      var p2 = getCellCenterPct(end);
+      addCurve(p1.x,p1.y,p2.x,p2.y,'#B79FE0',true,6);
+    });
+  }
+
+  // ---------- PLAYERS / STATE ----------
+  var players = [
+    {key:'p1', name:'Kamu', pos:1, emoji:'💗'},
+    {key:'p2', name:'Sayang', pos:1, emoji:'💙'}
+  ];
+  var currentIdx = 0;
+  var busy = false;
+  var tokenEls = {};
+
+  function renderTokens(){
+    var boardOuter = document.querySelector('.board-outer');
+    tokenEls.p1 && tokenEls.p1.remove();
+    tokenEls.p2 && tokenEls.p2.remove();
+    players.forEach(function(pl, i){
+      var el = document.createElement('div');
+      el.className = 'token ' + pl.key;
+      el.textContent = pl.emoji;
+      el.setAttribute('aria-hidden','true');
+      boardOuter.appendChild(el);
+      tokenEls[pl.key] = el;
+    });
+    positionTokens();
+  }
+
+  function positionTokens(){
+    players.forEach(function(pl){
+      var c = getCellCenterPct(pl.pos);
+      var el = tokenEls[pl.key];
+      if(!el) return;
+      var offsetX = pl.key === 'p1' ? -8 : 8;
+      el.style.left = 'calc(' + c.x + '% + ' + offsetX + 'px)';
+      el.style.top = 'calc(' + c.y + '% - 2px)';
+      el.style.transform = 'translate(-50%,-50%)';
+    });
+  }
+
+  function renderPlayersList(){
+    var list = document.getElementById('playersList');
+    list.innerHTML = '';
+    players.forEach(function(pl, i){
+      var chip = document.createElement('div');
+      chip.className = 'player-chip' + (i === currentIdx ? ' active' : '');
+      chip.innerHTML =
+        '<span class="player-dot ' + pl.key + '"></span>' +
+        '<span>' + escapeHtml(pl.name) + ' ' + pl.emoji + '</span>' +
+        '<span class="player-pos">kotak ' + pl.pos + '</span>';
+      list.appendChild(chip);
+    });
+  }
+
+  function escapeHtml(str){
+    var d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function updateTurnBanner(){
+    var pl = players[currentIdx];
+    document.getElementById('turnBanner').textContent = 'Giliran: ' + pl.name + ' ' + pl.emoji;
+    document.getElementById('liveRegion').textContent = 'Giliran ' + pl.name;
+  }
+
+  function showToast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2200);
+  }
+
+  var DICE_FACES = ['','⚀','⚁','⚂','⚃','⚄','⚅'];
+
+  function rollDice(){
+    if(busy) return;
+    busy = true;
+    document.getElementById('rollBtn').disabled = true;
+    var diceFace = document.getElementById('diceFace');
+    var ticks = 0;
+    var spin = setInterval(function(){
+      diceFace.textContent = DICE_FACES[1 + Math.floor(Math.random()*6)];
+      ticks++;
+      if(ticks > 8){
+        clearInterval(spin);
+        var value = 1 + Math.floor(Math.random()*6);
+        diceFace.textContent = DICE_FACES[value];
+        handleMove(value);
+      }
+    }, 70);
+  }
+
+  function handleMove(value){
+    var pl = players[currentIdx];
+    var target = pl.pos + value;
+
+    if(target > 100){
+      showToast(pl.name + ' butuh angka pas untuk sampai 100. Giliran lewat!');
+      setTimeout(endTurn, 900);
+      return;
+    }
+
+    pl.pos = target;
+    positionTokens();
+    renderPlayersList();
+
+    setTimeout(function(){
+      if(LADDERS[target]){
+        var newPos = LADDERS[target];
+        showToast('Yeay! ' + pl.name + ' naik Tangga Cinta ke kotak ' + newPos + ' 🪜💕');
+        pl.pos = newPos;
+        positionTokens();
+        renderPlayersList();
+        setTimeout(function(){ afterMove(pl); }, 650);
+      } else if(SNAKES[target]){
+        var newPos2 = SNAKES[target];
+        showToast('Ups, ' + pl.name + ' baper turun ke kotak ' + newPos2 + ' 💧');
+        pl.pos = newPos2;
+        positionTokens();
+        renderPlayersList();
+        setTimeout(function(){ afterMove(pl); }, 650);
+      } else {
+        afterMove(pl);
+      }
+    }, 550);
+  }
+
+  function afterMove(pl){
+    if(pl.pos === 100){
+      showWin();
+      return;
+    }
+    var special = SPECIAL[pl.pos];
+    if(special){
+      openQuestionModal(special, pl);
+    } else {
+      endTurn();
+    }
+  }
+
+  function openQuestionModal(special, pl){
+    var overlay = document.getElementById('qOverlay');
+    var card = document.getElementById('qModalCard');
+    var badge = document.getElementById('qModalBadge');
+    var emojiEl = document.getElementById('qModalEmoji');
+    var textEl = document.getElementById('qModalText');
+
+    card.className = 'modal-card cat-' + special.cat;
+    badge.className = 'modal-badge cat-' + special.cat;
+    badge.textContent = CAT_META[special.cat].label;
+    emojiEl.textContent = CAT_META[special.cat].emoji;
+    textEl.textContent = special.text;
+
+    overlay.classList.add('show');
+    document.getElementById('qCloseBtn').focus();
+
+    document.getElementById('qCloseBtn').onclick = function(){
+      overlay.classList.remove('show');
+      endTurn();
+    };
+  }
+
+  function endTurn(){
+    currentIdx = (currentIdx + 1) % players.length;
+    updateTurnBanner();
+    renderPlayersList();
+    document.getElementById('rollBtn').disabled = false;
+    busy = false;
+  }
+
+  function showWin(){
+    var winner = players[currentIdx];
+    document.getElementById('winText').textContent =
+      'Selamat, kotak 100 tercapai! ' + winner.name + ' jadi yang sampai duluan — tapi cerita kalian berdua tetap yang paling menang 💗';
+    spawnConfetti();
+    document.getElementById('winOverlay').classList.add('show');
+  }
+
+  function spawnConfetti(){
+    var wrap = document.getElementById('confettiWrap');
+    wrap.innerHTML = '';
+    var icons = ['💗','✨','💕','🌸','⭐'];
+    for(var i=0;i<24;i++){
+      var span = document.createElement('span');
+      span.className = 'confetti-piece';
+      span.textContent = icons[i % icons.length];
+      span.style.left = (Math.random()*100) + '%';
+      span.style.animationDuration = (2.5 + Math.random()*2.5) + 's';
+      span.style.animationDelay = (Math.random()*2) + 's';
+      wrap.appendChild(span);
+    }
+  }
+
+  function resetGame(){
+    players.forEach(function(pl){ pl.pos = 1; });
+    currentIdx = 0;
+    busy = false;
+    document.getElementById('rollBtn').disabled = false;
+    document.getElementById('diceFace').textContent = '🎲';
+    document.getElementById('winOverlay').classList.remove('show');
+    positionTokens();
+    renderPlayersList();
+    updateTurnBanner();
+  }
+
+  // ---------- INIT / EVENTS ----------
+  function init(){
+    renderBoard();
+    drawConnectors();
+    renderTokens();
+    renderPlayersList();
+    updateTurnBanner();
+
+    window.addEventListener('resize', function(){
+      drawConnectors();
+      positionTokens();
+    });
+
+    document.getElementById('startBtn').addEventListener('click', function(){
+      var n1 = document.getElementById('p1Name').value.trim();
+      var n2 = document.getElementById('p2Name').value.trim();
+      players[0].name = n1 || 'Kamu';
+      players[1].name = n2 || 'Sayang';
+      document.getElementById('setupScreen').style.display = 'none';
+      document.getElementById('gameScreen').style.display = 'block';
+      renderPlayersList();
+      updateTurnBanner();
+      setTimeout(function(){ drawConnectors(); positionTokens(); }, 50);
+    });
+
+    document.getElementById('rollBtn').addEventListener('click', rollDice);
+    document.getElementById('resetBtn').addEventListener('click', function(){
+      if(confirm('Yakin mau main ulang dari kotak 1?')){ resetGame(); }
+    });
+    document.getElementById('playAgainBtn').addEventListener('click', resetGame);
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>
